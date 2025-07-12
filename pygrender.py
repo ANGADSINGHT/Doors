@@ -77,6 +77,7 @@ class Game:
     SCREEN_HEIGHT: int
     fullscreen: bool
     player: bool = False
+    show_fps: bool = False
 
     def __post_init__(self):
         pygame.init()
@@ -87,7 +88,6 @@ class Game:
         self.FPS = 30
 
         self.running = True
-        self.show_fps = True
         self.loading = True
         self.style = None
 

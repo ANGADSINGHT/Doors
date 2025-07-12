@@ -18,7 +18,7 @@ except ImportError as e:
 
 class FNAV(Game):
     def __init__(self) -> None:
-        super().__init__(1920, 1080, fullscreen=True, player=True)
+        super().__init__(1920, 1080, fullscreen=True, player=True, show_fps=False)  # noqa: E501
         pygame.display.set_caption("Five Nights at Vinny's")
         pygame.mouse.set_visible(0)
 
@@ -62,6 +62,21 @@ class FNAV(Game):
         self.player.x = 960
         self.player.y = 540
 
+        self.FNAVTxt = self.fnafFont(150).render('Five', True, (0, 0, 0))  # noqa: E501
+        self.FNAVTxt2 = self.fnafFont(150).render('Nights', True, (0, 0, 0))  # noqa: E501
+        self.FNAVTxt3 = self.fnafFont(150).render('At', True, (0, 0, 0))  # noqa: E501
+        self.FNAVTxt4 = self.fnafFont(150).render("Vinny's", True, (0, 0, 0))  # noqa: E501
+
+    def fnafFont(self, size: int = 72) -> pygame.font.Font:
+        """Load the FNAF font with the specified size."""
+        try:
+            return pygame.font.Font("assets/font/fnaf.otf",
+                                    size)
+        except FileNotFoundError:
+            print("[PYGRender] [Error] FNAF font not found. "
+                  "Using default font")
+            return pygame.font.SysFont(None, size)
+
     def update(self) -> None:
         super().update()
 
@@ -69,35 +84,43 @@ class FNAV(Game):
             self.stage = 1
 
     def draw(self) -> None:
-        width, height = 540, 960
+        if self.stage == 1:
+            width, height = 540, 960
 
-        # Generate base random noise
-        base_noise = np.random.randint(0, 256, (height, width)).astype(np.float32)  # noqa: E501
+            # Generate base random noise
+            base_noise = np.random.randint(0, 256, (height, width)).astype(np.float32)  # noqa: E501
 
-        # Apply Gaussian blur for smoothness
-        smooth_noise = gaussian_filter(base_noise, sigma=3)
+            # Apply Gaussian blur for smoothness
+            smooth_noise = gaussian_filter(base_noise, sigma=3)
 
-        # Normalize and scale to 0-180 for darker tone
-        smooth_noise = (smooth_noise - smooth_noise.min()) / (smooth_noise.max() - smooth_noise.min())  # noqa: E501
-        smooth_noise = (smooth_noise * 180).astype(np.uint8)
+            # Normalize and scale to 0-180 for darker tone
+            smooth_noise = (smooth_noise - smooth_noise.min()) / (smooth_noise.max() - smooth_noise.min())  # noqa: E501
+            smooth_noise = (smooth_noise * 180).astype(np.uint8)
 
-        # Add vertical scanlines (every 4th column darker)
-        smooth_noise[:, ::4] = np.clip(smooth_noise[:, ::4] - 30, 0, 180)
+            # Add vertical scanlines (every 4th column darker)
+            smooth_noise[:, ::4] = np.clip(smooth_noise[:, ::4] - 30, 0, 180)
 
-        # Add flicker: add small random values per pixel
-        flicker = np.random.randint(-10, 10, (height, width))
-        smooth_noise = np.clip(smooth_noise + flicker, 0, 180).astype(np.uint8)
+            # Add flicker: add small random values per pixel
+            flicker = np.random.randint(-10, 10, (height, width))
+            smooth_noise = np.clip(smooth_noise + flicker, 0, 180).astype(np.uint8)  # noqa: E501
 
-        # Convert to RGB
-        arr_rgb = np.repeat(smooth_noise[:, :, np.newaxis], 3, axis=2)
+            # Convert to RGB
+            arr_rgb = np.repeat(smooth_noise[:, :, np.newaxis], 3, axis=2)
 
-        # Upscale by 2 for 1080x1920
-        arr_upscaled = np.repeat(np.repeat(arr_rgb, 2, axis=0), 2, axis=1)
+            # Upscale by 2 for 1080x1920
+            arr_upscaled = np.repeat(np.repeat(arr_rgb, 2, axis=0), 2, axis=1)
 
-        surface = pygame.surfarray.make_surface(arr_upscaled)
-        self.screen.blit(surface, (0, 0))
+            surface = pygame.surfarray.make_surface(arr_upscaled)
+            self.screen.blit(surface, (0, 0))
 
-        super().draw()
+            start = 40
+            step = 105
+            self.screen.blit(self.FNAVTxt, (50, start))
+            self.screen.blit(self.FNAVTxt2, (50, start+step))
+            self.screen.blit(self.FNAVTxt3, (50, start+step*2))
+            self.screen.blit(self.FNAVTxt4, (50, start+step*3))
+
+            super().draw()
 
     def pause(self) -> None:
         """Pause the game."""
